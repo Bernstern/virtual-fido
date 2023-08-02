@@ -44,9 +44,13 @@ func (server *USBIPServer) handleConnection(conn *net.Conn) {
 	for {
 		header := util.ReadBE[USBIPControlHeader](*conn)
 		usbipLogger.Printf("[CONTROL MESSAGE] %#v\n\n", header)
-		if header.CommandCode == USBIP_COMMAND_OP_REQ_DEVLIST {
+		if true {
 			reply := newOpRepDevlist(server.device)
 			usbipLogger.Printf("[OP_REP_DEVLIST] %#v\n\n", reply)
+
+			// Log the raw bytes of the reply buffer
+			usbipLogger.Printf("[OP_REP_DEVLIST] %v\n\n", reply)
+
 			util.Write(*conn, util.ToBE(reply))
 		} else if header.CommandCode == USBIP_COMMAND_OP_REQ_IMPORT {
 			busId := make([]byte, 32)
@@ -80,9 +84,9 @@ func (server *USBIPServer) handleCommands(conn *net.Conn) {
 func (server *USBIPServer) handleCommandSubmit(conn *net.Conn, header USBIPMessageHeader) {
 	command := util.ReadBE[USBIPCommandSubmitBody](*conn)
 	setup := command.Setup()
-	usbipLogger.Printf("[COMMAND SUBMIT] %s\n\n", command)
+	usbipLogger.Printf("[COMMAND SUBMIT] %s [len %d]\n\n", command, command.TransferBufferLength)
 	transferBuffer := make([]byte, command.TransferBufferLength)
-	if header.Direction == USBIP_DIR_OUT && command.TransferBufferLength > 0 {
+	if header.Direction == USBIP_DIR_OUT && command.TransferBufferLength > 1 {
 		_, err := (*conn).Read(transferBuffer)
 		util.CheckErr(err, "Could not read transfer buffer")
 	}
@@ -104,7 +108,7 @@ func (server *USBIPServer) handleCommandSubmit(conn *net.Conn, header USBIPMessa
 			ErrorCount:      0,
 			Padding:         0,
 		}
-		usbipLogger.Printf("[RETURN SUBMIT] %v %#v\n\n", replyHeader, replyBody)
+		usbipLogger.Printf("[RETURN SUBMIT] %v %#v %v\n\n", replyHeader, replyBody, transferBuffer)
 		util.Write(*conn, util.ToBE(replyHeader))
 		util.Write(*conn, util.ToBE(replyBody))
 		if header.Direction == USBIP_DIR_IN {

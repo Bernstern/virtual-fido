@@ -94,7 +94,7 @@ func createClient() *fido_client.DefaultFIDOClient {
 	encryptionKey := sha256.Sum256([]byte("test"))
 
 	virtual_fido.SetLogOutput(os.Stdout)
-	virtual_fido.SetLogLevel(util.LogLevelDebug)
+	virtual_fido.SetLogLevel(util.LogLevelTrace)
 	support := ClientSupport{vaultFilename: vaultFilename, vaultPassphrase: vaultPassphrase}
 	return fido_client.NewDefaultClient(authorityCertBytes, privateKey, encryptionKey, &support, &support)
 }
@@ -144,6 +144,7 @@ func init() {
 }
 
 func main() {
+	fmt.Printf("Here")
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)

@@ -149,8 +149,9 @@ build_udev(devno_t devno, struct usbip_usb_device *pudev)
 {
 	char	*devpath;
 	ioctl_usbip_stub_devinfo_t	Devinfo;
-
+	printf("HERE");
 	devpath = get_devpath_from_devno(devno);
+	info("devpath: %s\n", devpath);
 	if (devpath == NULL) {
 		dbg("invalid devno: %hhu. devpath returned %s", devno, devpath);
 		return FALSE;

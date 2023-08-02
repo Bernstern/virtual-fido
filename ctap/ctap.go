@@ -279,7 +279,7 @@ func (server *CTAPServer) handleGetInfo(data []byte) []byte {
 			// CanUserVerification: true,
 		},
 	}
-	if server.client.SupportsPIN() {
+	if false {
 		response.Options.HasClientPIN = server.client.PINHash() != nil
 		response.PinProtocols = []uint32{1}
 	}

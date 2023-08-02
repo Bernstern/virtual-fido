@@ -42,8 +42,8 @@ func (device *USBDeviceImpl) getDeviceDescriptor() USBDeviceDescriptor {
 		BDeviceSubclass:    0,
 		BDeviceProtocol:    0,
 		BMaxPacketSize:     64,
-		IdVendor:           0,
-		IdProduct:          0,
+		IdVendor:           0xffff,
+		IdProduct:          1,
 		BcdDevice:          0x1,
 		IManufacturer:      1,
 		IProduct:           2,
@@ -154,13 +154,16 @@ func (device *USBDeviceImpl) getDescriptor(descriptorType USBDescriptorType, ind
 		hid := device.getHIDDescriptor(hidReport)
 		usbLogger.Printf("CONFIGURATION: %#v\n\nINTERFACE: %#v\n\nHID: %#v\n\n", config, interfaceDescriptor, hid)
 		buffer.Write(util.ToLE(config))
+		usbLogger.Printf("CONFIGURATION LE: %v\n\n", util.ToLE(config))
 		buffer.Write(util.ToLE(interfaceDescriptor))
 		buffer.Write(util.ToLE(hid))
 		endpoints := device.getEndpointDescriptors()
 		for _, endpoint := range endpoints {
 			usbLogger.Printf("ENDPOINT: %#v\n\n", endpoint)
+			usbLogger.Printf("ENDPOINT LE: %v\n\n", util.ToLE(endpoint))
 			buffer.Write(util.ToLE(endpoint))
 		}
+		usbLogger.Printf("CONFIGURATION DESCRIPTOR: %v\n\n", buffer.Bytes())
 		return buffer.Bytes()
 	case USB_DESCRIPTOR_STRING:
 		var message []byte
@@ -177,6 +180,7 @@ func (device *USBDeviceImpl) getDescriptor(descriptorType USBDescriptorType, ind
 		}
 		buffer := new(bytes.Buffer)
 		buffer.Write(util.ToLE(header))
+		usbLogger.Printf("STRING HEADER: %v\n\n", util.ToLE(header))
 		buffer.Write([]byte(message))
 		usbLogger.Printf("STRING: Length: %d Message: \"%s\" Bytes: %v\n\n", header.BLength, message, buffer.Bytes())
 		return buffer.Bytes()
@@ -230,6 +234,7 @@ func (device *USBDeviceImpl) handleDeviceRequest(
 	case USB_REQUEST_GET_DESCRIPTOR:
 		descriptorType, descriptorIndex := getDescriptorTypeAndIndex(setup.WValue)
 		descriptor := device.getDescriptor(descriptorType, descriptorIndex)
+		usbLogger.Printf("[DESCRIPTOR RAW] %v\n\n", descriptor)
 		copy(transferBuffer, descriptor)
 	case USB_REQUEST_SET_CONFIGURATION:
 		usbLogger.Printf("SET_CONFIGURATION: No-op\n\n")
